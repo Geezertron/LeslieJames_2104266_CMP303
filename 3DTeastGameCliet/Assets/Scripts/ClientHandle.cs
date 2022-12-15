@@ -1,0 +1,46 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.Net;
+using UnityEngine;
+
+public class ClientHandle : MonoBehaviour
+{
+    public static void Welcome(Packet _packet){
+        //read in same order as write
+        string _msg = _packet.ReadString();
+        int _myId = _packet.ReadInt();
+
+        Debug.Log($"Message from server: {_msg}");
+        Client.instance.myId = _myId;
+        ClientSend.welcomeReceived();
+
+        Client.instance.udp.Connect(((IPEndPoint)Client.instance.tcp.socket.Client.LocalEndPoint).Port);
+
+    }     
+
+     public static void spawnPlayer(Packet _packet){
+        int _id = _packet.ReadInt();
+        string _username = _packet.ReadString();
+
+        Vector3 _position = _packet.readVector3();
+        Quaternion _rotation = _packet.readQuaternion();
+
+        GameManager.instance.spawnPlayer(_id,_username,_position,_rotation);
+     }                                                                      
+
+    //read player position and id then apply to game
+     public static void playerPosition(Packet _packet){
+        int _id = _packet.ReadInt();
+        Vector3 _position = _packet.readVector3();
+
+        GameManager.players[_id].transform.position = _position;
+     }   
+
+     //read player rotation and id then apply to game
+     public static void playerRotation(Packet _packet){
+        int _id = _packet.ReadInt();
+        Quaternion _rotation = _packet.readQuaternion();
+
+        GameManager.players[_id].transform.rotation = _rotation;
+     }                          
+}
